@@ -1,0 +1,17 @@
+{
+  "name": "kalender-katika",
+  "version": "1.0.0",
+  "description": "Aplikasi Web Kalender Wariga Bali",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "suncalc": "^1.9.0"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  }
+}
