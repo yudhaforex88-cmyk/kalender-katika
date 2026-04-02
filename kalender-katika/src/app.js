@@ -2,18 +2,13 @@ import ModulMasehi from './modules/ModulMasehi.js';
 
 class AppController {
     constructor() {
-        // Inisialisasi Mesin Utama
         this.tikaEngine = new ModulMasehi();
-        
-        // Mulai aplikasi
+        this.errorAktif = false;
         this.init();
     }
 
     init() {
-        // Jalankan update pertama kali segera
         this.renderDashboard();
-        
-        // Set pembaruan setiap detik agar jam berjalan dan transisi fase dinamis
         setInterval(() => this.renderDashboard(), 1000);
     }
 
@@ -21,47 +16,60 @@ class AppController {
         return dateObj.toLocaleTimeString('id-ID', { hour12: false });
     }
 
+    setText(id, value) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerText = value;
+    }
+
+    renderStatusIntegrasi(statusIntegrasi) {
+        const ringkas = Object.entries(statusIntegrasi)
+            .map(([modul, status]) => `${modul}:${status}`)
+            .join(' | ');
+
+        this.setText('status-integrasi', ringkas);
+        this.setText('status-error', this.errorAktif ? 'Terjadi gangguan modul.' : 'Semua modul terhubung normal.');
+    }
+
     renderDashboard() {
-        const waktuSekarang = new Date();
-        
-        // Ambil data lengkap dari integrator
-        const dataTika = this.tikaEngine.konversiKeTika(waktuSekarang);
+        try {
+            const waktuSekarang = new Date();
+            const dataTika = this.tikaEngine.konversiKeTika(waktuSekarang);
+            this.errorAktif = false;
 
-        // --- UPDATE UI ASTRONOMI ---
-        document.getElementById('waktu-masehi').innerText = waktuSekarang.toLocaleString('id-ID');
-        document.getElementById('waktu-terbit').innerText = this.formatWaktu(dataTika.astronomi.matahariTerbit);
-        document.getElementById('waktu-terbenam').innerText = this.formatWaktu(dataTika.astronomi.matahariTerbenam);
-        
-        // Render Fase (Misal: "Fase A (Malam)" atau "Fase B (Siang)")
-        const teksFase = dataTika.astronomi.faseSaatIni === 'A' ? 'Fase A (Malam)' : 'Fase B (Siang)';
-        document.getElementById('fase-dina').innerText = teksFase;
+            this.setText('waktu-masehi', waktuSekarang.toLocaleString('id-ID'));
+            this.setText('waktu-terbit', this.formatWaktu(dataTika.astronomi.matahariTerbit));
+            this.setText('waktu-terbenam', this.formatWaktu(dataTika.astronomi.matahariTerbenam));
 
-        // --- UPDATE UI WUKU & SASIH ---
-        document.getElementById('wuku-teks').innerText = `${dataTika.wuku.nama} (${dataTika.wuku.urutan})`;
-        document.getElementById('sasih-teks').innerText = `Sasih ${dataTika.sasih.nama} (${dataTika.sasih.urutanSasih})`;
-        
-        // Tampilkan fase sasih (misal: "Penanggal 10")
-        document.getElementById('fase-sasih').innerText = `${dataTika.sasih.fase} ${dataTika.sasih.angkaFase}`;
-        
-        // Jika sedang Purnama atau Tilem, teksnya akan muncul
-        document.getElementById('puncak-sasih').innerText = dataTika.sasih.puncakCandra ? `🌟 ${dataTika.sasih.puncakCandra} 🌟` : '';
+            const teksFase = dataTika.astronomi.faseSaatIni === 'A' ? 'Fase A (Malam)' : 'Fase B (Siang)';
+            this.setText('fase-dina', teksFase);
 
-        // --- UPDATE UI WEWARAN ---
-        const w = dataTika.wewaran;
-        document.getElementById('eka-wara').innerText = w.eka;
-        document.getElementById('dwi-wara').innerText = w.dwi;
-        document.getElementById('tri-wara').innerText = w.tri;
-        document.getElementById('catur-wara').innerText = w.catur;
-        document.getElementById('panca-wara').innerText = w.panca;
-        document.getElementById('sad-wara').innerText = w.sad;
-        document.getElementById('sapta-wara').innerText = w.sapta;
-        document.getElementById('asta-wara').innerText = w.asta;
-        document.getElementById('sanga-wara').innerText = w.sanga;
-        document.getElementById('dasa-wara').innerText = w.dasa;
+            this.setText('wuku-teks', `${dataTika.wuku.nama} (${dataTika.wuku.urutan})`);
+            this.setText('sasih-teks', `Sasih ${dataTika.sasih.nama} (${dataTika.sasih.urutanSasih})`);
+            this.setText('fase-sasih', `${dataTika.sasih.fase} ${dataTika.sasih.angkaFase}`);
+            this.setText('puncak-sasih', dataTika.sasih.puncakCandra ? `🌟 ${dataTika.sasih.puncakCandra} 🌟` : '');
+
+            const w = dataTika.wewaran;
+            this.setText('eka-wara', w.eka);
+            this.setText('dwi-wara', w.dwi);
+            this.setText('tri-wara', w.tri);
+            this.setText('catur-wara', w.catur);
+            this.setText('panca-wara', w.panca);
+            this.setText('sad-wara', w.sad);
+            this.setText('sapta-wara', w.sapta);
+            this.setText('asta-wara', w.asta);
+            this.setText('sanga-wara', w.sanga);
+            this.setText('dasa-wara', w.dasa);
+
+            this.renderStatusIntegrasi(dataTika.statusIntegrasi);
+        } catch (error) {
+            this.errorAktif = true;
+            this.setText('status-integrasi', 'sinkronisasi gagal');
+            this.setText('status-error', error.message);
+        }
     }
 }
 
-// Jalankan AppController saat DOM sudah siap
 document.addEventListener('DOMContentLoaded', () => {
     new AppController();
 });
