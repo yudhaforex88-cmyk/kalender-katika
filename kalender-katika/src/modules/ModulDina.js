@@ -1,39 +1,55 @@
-import ModulDina from './modules/ModulDina.js';
-
-class AppController {
+class ModulDina {
     constructor() {
-        // Menginisialisasi modul utama
-        this.mesinDina = new ModulDina();
-        this.displayElement = document.getElementById('output-dina');
-        
-        this.init();
+        this.resetSiklus = 420;
+        this.resetSiklusSurya = 6;
     }
 
-    init() {
-        // Jalankan siklus pembaruan setiap detik
-        this.updateDashboard();
-        setInterval(() => this.updateDashboard(), 1000);
+    getDinaIndex(waktuMasehi, dataMasehi = null) {
+        const dataSurya = dataMasehi || this.#hitungSiklusSurya(waktuMasehi);
+
+        const serialEvent = dataSurya.serialEvent;
+        const nilaiSiklusSurya = this.#wrap(serialEvent, this.resetSiklusSurya);
+        const nilaiDina = this.#wrap(serialEvent, this.resetSiklus);
+
+        const blokPola = Math.floor((serialEvent - 1) / 3);
+        const pola = blokPola % 2 === 0 ? 'ganjil' : 'genap';
+
+        const selisihHari = this.#dayDiff(
+            dataSurya.tanggalWariga,
+            new Date(Date.UTC(2025, 0, 2))
+        );
+
+        return {
+            indexHari: selisihHari,
+            dinaPenuh: nilaiDina,
+            fase: pola === 'ganjil' ? 'A' : 'B',
+            pola,
+            penandaAktif: dataSurya.penandaAktif,
+            siklusSurya: nilaiSiklusSurya,
+            serialEvent,
+            markers: {
+                sunrise: dataSurya.sunrise,
+                sunset: dataSurya.sunset
+            },
+            cycle: {
+                reset_setelah: this.resetSiklus,
+                sisa_siklus: this.resetSiklus - nilaiDina
+            }
+        };
     }
 
-    updateDashboard() {
-        const waktuSekarang = new Date();
-        const dataDina = this.mesinDina.getDinaIndex(waktuSekarang);
+    #hitungSiklusSurya(waktuMasehi) {
+        throw new Error('ModulDina membutuhkan data terjemahan dari ModulMasehi.');
+    }
 
-        // Format output untuk ditampilkan ke HTML
-        this.displayElement.innerHTML = `
-            <strong>Waktu Masehi:</strong> ${waktuSekarang.toLocaleString('id-ID')}<br><br>
-            <strong>Indeks Dina:</strong> ${dataDina.dinaPenuh} / ${dataDina.cycle.reset_setelah}<br>
-            <strong>Fase Aktif:</strong> ${dataDina.fase} <br>
-            <strong>Sisa Siklus:</strong> ${dataDina.cycle.sisa_siklus} dina<br><br>
-            <span class="text-gray-500 text-xs">
-                Matahari Terbit: ${dataDina.markers.sunrise.toLocaleTimeString('id-ID')} | 
-                Matahari Terbenam: ${dataDina.markers.sunset.toLocaleTimeString('id-ID')}
-            </span>
-        `;
+    #wrap(nilai, modulus) {
+        return ((nilai - 1) % modulus + modulus) % modulus + 1;
+    }
+
+    #dayDiff(a, b) {
+        const msPerDay = 24 * 60 * 60 * 1000;
+        return Math.floor((a.getTime() - b.getTime()) / msPerDay);
     }
 }
 
-// Jalankan aplikasi saat DOM siap
-document.addEventListener('DOMContentLoaded', () => {
-    new AppController();
-});
+export default ModulDina;
