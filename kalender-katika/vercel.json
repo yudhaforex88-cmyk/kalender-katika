@@ -1,0 +1,11 @@
+{
+  "buildCommand": "cd kalender-katika && npm install && npm run build",
+  "outputDirectory": "kalender-katika/dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
