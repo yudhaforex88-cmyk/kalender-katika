@@ -9,11 +9,21 @@ class AppController {
 
     init() {
         this.renderDashboard();
-        setInterval(() => this.renderDashboard(), 1000);
+        // Dashboard berbasis siklus sunrise/sunset, tidak menghitung jam berjalan.
+        setInterval(() => this.renderDashboard(), 60000);
     }
 
     formatWaktu(dateObj) {
         return dateObj.toLocaleTimeString('id-ID', { hour12: false });
+    }
+
+    formatTanggal(dateObj) {
+        return dateObj.toLocaleDateString('id-ID', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
     }
 
     setText(id, value) {
@@ -37,12 +47,14 @@ class AppController {
             const dataTika = this.tikaEngine.konversiKeTika(waktuSekarang);
             this.errorAktif = false;
 
-            this.setText('waktu-masehi', waktuSekarang.toLocaleString('id-ID'));
+            this.setText('waktu-masehi', this.formatTanggal(waktuSekarang));
             this.setText('waktu-terbit', this.formatWaktu(dataTika.astronomi.matahariTerbit));
             this.setText('waktu-terbenam', this.formatWaktu(dataTika.astronomi.matahariTerbenam));
 
-            const teksFase = dataTika.astronomi.faseSaatIni === 'A' ? 'Fase A (Malam)' : 'Fase B (Siang)';
-            this.setText('fase-dina', teksFase);
+            const teksSiklus = dataTika.astronomi.penandaAktif === 'sunrise'
+                ? 'Sunrise (Terbit)'
+                : 'Sunset (Terbenam)';
+            this.setText('fase-dina', teksSiklus);
 
             this.setText('wuku-teks', `${dataTika.wuku.nama} (${dataTika.wuku.urutan})`);
             this.setText('sasih-teks', `Sasih ${dataTika.sasih.nama} (${dataTika.sasih.urutanSasih})`);
