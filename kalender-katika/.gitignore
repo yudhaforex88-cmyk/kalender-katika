@@ -1,0 +1,11 @@
+# dependencies
+node_modules/
+kalender-katika/node_modules/
+
+# build output
+kalender-katika/dist/
+
+# local env files
+.env
+.env.*
+!.env.example
