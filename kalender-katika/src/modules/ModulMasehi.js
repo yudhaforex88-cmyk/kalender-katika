@@ -22,6 +22,8 @@ class ModulMasehi {
         const wuku = this.mesinWuku.getWuku(indexDinaUtuh);
         const sasih = this.mesinSasih.getSasih(indexDinaUtuh);
 
+        this.#validasiModul(dataDina, wewaran, wuku, sasih);
+
         return {
             masehi: waktuMasehi,
             astronomi: {
@@ -35,7 +37,13 @@ class ModulMasehi {
             },
             wewaran,
             wuku,
-            sasih
+            sasih,
+            statusIntegrasi: {
+                dina: 'sinkron',
+                wewaran: 'sinkron',
+                wuku: 'sinkron',
+                sasih: 'sinkron'
+            }
         };
     }
 
@@ -79,6 +87,24 @@ class ModulMasehi {
             sunset,
             tanggalWariga
         };
+    }
+
+    #validasiModul(dataDina, wewaran, wuku, sasih) {
+        if (!dataDina || typeof dataDina.indexHari !== 'number' || !dataDina.markers) {
+            throw new Error('Integrasi ModulDina tidak valid.');
+        }
+
+        if (!wewaran || !wewaran.sapta || !wewaran.panca) {
+            throw new Error('Integrasi ModulWewaran tidak valid.');
+        }
+
+        if (!wuku || !wuku.nama || typeof wuku.urutan !== 'number') {
+            throw new Error('Integrasi ModulWuku tidak valid.');
+        }
+
+        if (!sasih || !sasih.nama || !sasih.fase || typeof sasih.angkaFase !== 'number') {
+            throw new Error('Integrasi ModulSasih tidak valid.');
+        }
     }
 
     #serialEvent(year, month, day, type) {
